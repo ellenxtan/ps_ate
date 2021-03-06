@@ -1,1 +1,1 @@
-# principal_stratum_ate
+# Identifying principal stratum causal effects conditional on a post-treatment intermediate response
