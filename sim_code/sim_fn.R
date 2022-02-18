@@ -119,14 +119,6 @@ GetSimulateData = function (pars_init, pars_out) {
   
   # simulate Zi (lastly)
   pz = pars_init$pz[1]
-  # Z = rep(NA, n)
-  # idx = sample(1:n, n*pz)  # these Zi are 0s
-  # Z[idx] = 0
-  # Z[-idx] = 1
-  # Z = rep(NA, n)
-  # for (i in index) {
-  #   Z[i] = sample(c(0, 1), 1, prob=c(1-pz, pz))
-  # }
   Z = c()
   for (i in 1:(m*2)) {
     if (i %% 2 == 0) {
@@ -190,12 +182,6 @@ EstimateBeta = function(mydata, beta_init, optimMethod, lambda, optimConst, GetO
   N01x = rep(NA, m)
   N10x = rep(NA, m)
   N11x = rep(NA, m)
-  # for (x in level) {
-  #   N00x[x] = sum(Z==0 & S0==0 & X==x-1)
-  #   N01x[x] = sum(Z==0 & S0==1 & X==x-1)
-  #   N10x[x] = sum(Z==1 & S1==0 & X==x-1)
-  #   N11x[x] = sum(Z==1 & S1==1 & X==x-1)
-  # }
   for (x in level) {
     N00x[x] = sum(S0==0 & X==x-1)
     N01x[x] = sum(S0==1 & X==x-1)
@@ -234,26 +220,7 @@ EstimateBeta = function(mydata, beta_init, optimMethod, lambda, optimConst, GetO
   # GR[y, x] = sum(S0==0 & Y0==y-1 & X==x-1) / sum(S0==0 & X==x-1)
   
   res = optim(par=beta_init, fn=GetOptimBetaFn, GL=GL, GR=GR, lambda=lambda, method=optimMethod,
-              level=level, optimConst=optimConst, control=list(maxit=1e7))#,reltol=1e-7))#,trace=TRUE))#))
-              #hessian = TRUE)#abstol=1e-1))#abstol=0.01))#,
-  #           lower=c(-100, 1e-10, -100), upper=c(100, 100, 100))
-  #res = nlm(GetOptimBeta, beta_init, GL=GL, GR=GR, lambda=lambda)
-  #print(res$value)
-  #print(res$par)
-  #print(res$convergence)
-  #print(res$trace)
-  #print(res$hessian)
-  #print(is.singular.matrix(res$hessian))
-  
-  # part1 = exp(beta0 + beta2*(level-1))
-  # part2 = exp(beta0 + beta1 + beta2*(level-1))
-  # cat("part1_numer = ", part1, "\n")
-  # cat("part1 = ", part1 / (1 + part1), "\n")
-  # cat("part2_numer = ", part2, "\n")
-  # cat("part2 = ", part2 / (1 + part2), "\n")
-  # cat("GL = ", GL, "\n")
-  # cat("GR = ", GR, "\n")
-  #print("--------")
+              level=level, optimConst=optimConst, control=list(maxit=1e7))
 
   # estimate p1=Pr[Y(1)=1 | S(1)=1]
   p1 = sum(Z==1 & S1==1 & Y1==1) / sum(Z==1 & S1==1)
@@ -369,23 +336,6 @@ Estimation = function(pars_init, GetThetaTrue, GetSimulateData, EstimateBeta, Es
     bootBeta0s[,i] = resBoot[,2]
     bootBeta1s[,i] = resBoot[,3]
     bootBeta2s[,i] = resBoot[,4]
-    # bootP00xs = rbind(bootP00xs, resBoot[, 5:(5+m-1)])
-    # bootP11xs = rbind(bootP11xs, resBoot[, (5+m):(5+m+m-1)])
-    # bootP01xs = rbind(bootP01xs, resBoot[, (5+m+m):(5+m+m+m-1)])
-    
-    # get bootstrap samples
-    # for (j in 1:b) {
-    ##   getBootData = GetSimulateData(pars_out, list())
-    ##   bootdata = getBootData$simulateData
-    #   bootdata = simulateData[sample(nrow(simulateData), nrow(simulateData), replace=TRUE), ]
-    #   tmp = EstimateBeta(bootdata, beta_init, optimMethod, lambda, optimConst, GetOptimBeta)
-    #   resBoot = EstimateEffect(bootdata, c(tmp$beta0, tmp$beta1, tmp$beta2))
-    #   bootTheta[j,i] = resBoot[1]
-    #   bootBeta0s[j,i] = resBoot[2]
-    #   bootBeta1s[j,i] = resBoot[3]
-    #   bootBeta2s[j,i] = resBoot[4]
-    #   if (j%%200==0){cat(j, " ")}
-    # }
 
     sorted = sort(bootTheta[,i])
     lo90 = sorted[b*(0.1/2)]
@@ -404,8 +354,6 @@ Estimation = function(pars_init, GetThetaTrue, GetSimulateData, EstimateBeta, Es
         "n=", n, "b=", b, "r=", r, 
         "betaTrue=", beta_true, "thetaTrue=",thetaTrue,
         "meanThetaHat=", round(mean(dataTheta, na.rm=T),3), 
-        # "imputeTheta=", round(mean(imputeTheta, na.rm=T),3),
-        # ". diff_boot=", round(mean(bootTheta, na.rm = T)-thetaTrue,3), 
         "bias=", round(mean(dataTheta, na.rm=T)-thetaTrue,3),
         "betaHat=", round(mean(dataBeta0s, na.rm=T),3), 
         round(mean(dataBeta1s, na.rm=T),3), round(mean(dataBeta2s, na.rm=T),3), 
@@ -492,35 +440,6 @@ BootCIfn = function(n, b, r, alpha, bootTheta, dataTheta, thetaTrue){
   covrPrCI3 = mean(low3<thetaTrue & upp3>thetaTrue)
   avgLenCI3 = mean(upp3 - low3)
   cat("avgLenCI3:", avgLenCI3, ". coverageCI3:", covrPrCI3, "\n")
-
-  # method 4: based on bootstrap variance (assume boot normal dist)
-  # low4 = numeric(r)
-  # upp4 = numeric(r)
-  # thetaHat = mean(dataTheta)
-  # boot_var = numeric(r)
-  # for (j in 1:r) {
-  #   xbar = mean(bootTheta[,j])
-  #   boot_var[j] = sum((bootTheta[,j]-xbar)^2)/(b-1)
-  #   low4[j] = thetaHat-qnorm(1-alpha/2)*sqrt(boot_var[j])
-  #   upp4[j] = thetaHat-qnorm(alpha/2)*sqrt(boot_var[j])
-  # }
-
-  # low4 = numeric(r)
-  # upp4 = numeric(r)
-  # # xbar = mean(dataTheta)  # change on 2/6/2020
-  # for(j in 1:r){
-  #   xbar = mean(bootTheta[,j])
-  #   IIs=sqrt(n)*(bootTheta[,j]-xbar)
-  #   grids=sort(IIs)
-  #   F_hat=rep(0,length(grids))
-  #   for (i in 1:length(grids)){
-  #     F_hat[i]= sum(IIs<=grids[i])/b
-  #   }
-  #   t_u=grids[which.min(F_hat<alpha/2)]
-  #   t_l=grids[which.min(F_hat<1-alpha/2)]
-  #   low4[j]=xbar-t_l/sqrt(n)
-  #   upp4[j]=xbar-t_u/sqrt(n)
-  # }
 
   # https://ocw.mit.edu/courses/mathematics/18-05-introduction-to-probability-and-statistics-spring-2014/readings/MIT18_05S14_Reading24.pdf
   low4 = numeric(r)
