@@ -3,9 +3,6 @@
 
 Main <- function(beta_true) {
   #> Parameter Settings ---------- 
-  # beta_true = c(-7,3,0.2) #c(-2.7, -1.2, -.5) #c(0.2, -8, -0.6)  # c(0.2, -10, -0.6)  # c(1, -1, -0.6)
-  # candidate: c(-1,1,-1 no) c(-3,-3,-1) c(-3,-2,-1) c(-5,-1,2) c(-5,-1,-2 ok)  c(-4,1,-1) c(-2,-7,-0.3 ok&quick) c(-1,-8,-0.3 ok&quick) c(-7,3,0.2 running)
-  
   pars_init = list()
   pars_init$beta_true = beta_true
   pars_init$r = 1000  # number of dataset created
@@ -35,8 +32,6 @@ Main <- function(beta_true) {
   X = seq(pars_init$m)-1
   pars_init$pS11_S00Y00x = sapply(X, betaFn, beta=pars_init$beta_true, y=0)  # true 5yr:(0.00619 0.16281 0.32567 0.08709)
   pars_init$pS11_S00Y01x = sapply(X, betaFn, beta=pars_init$beta_true, y=1)  # true 5yr:(0.00031 0.00974 0.02384 0.0048)
-  # print(pars_init$pS11_S00Y00x)
-  # print(pars_init$pS11_S00Y01x)
   
   pars_init$pY11_S00S10Y00x = 0.50
   pars_init$pY11_S00S10Y01x = 0.60
@@ -68,18 +63,6 @@ Main <- function(beta_true) {
   thetaTrue = resBoot$thetaTrue
   dataTheta = resBoot$dataTheta
   resAnalysis = Analysis(dataTheta, bootTheta, thetaTrue, pars_init$n, pars_init$b, pars_init$r)
-  
-  # dataPS11_x = 1 - resBoot$dataP00xs
-  # dataPS01_x = resBoot$dataP11xs
-  # bootPS11_x = 1 - resBoot$bootP00xs
-  # bootPS01_x = resBoot$bootP11xs
-  # level = seq(4)
-  # for (x in level) {
-  #   print(sum(dataPS11_x[,x] <= dataPS01_x[,x]))
-  #   print(sum(bootPS11_x[,x] <= bootPS01_x[,x]))
-  # }
-  # print(sum(dataPS11_x <= dataPS01_x))
-  # print(sum(bootPS11_x <= bootPS01_x))
   
   filename = paste0("sim_", pars_init$beta_true[1], "_", 
                     pars_init$beta_true[2], "_",
